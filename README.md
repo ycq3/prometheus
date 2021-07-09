@@ -109,6 +109,47 @@ You can build a docker image locally with the following commands:
 
 For more information on building, running, and developing on the new React-based UI, see the React app's [README.md](web/ui/react-app/README.md).
 
+## Example of Prometheus Scrap Config with new option to HTTP Custom Headers
+
+The newly added entry `custom_header:` for adding new HTTP headers can be placed below a Scrape job.
+```
+scrape_configs:
+  - job_name:
+    [...]
+    custom_header:
+      new_header0: 'any-header-value'
+      [...]
+      new_headerN: 'any-header-value'
+    [...]
+
+```
+
+In a full scrape config the option can look like this.
+```
+global:
+  scrape_interval:     15s 
+  evaluation_interval: 15s 
+
+scrape_configs:
+  - job_name: 'my_job'
+    scrape_interval: 2m
+    scrape_timeout: 1m
+    scheme: https
+    metrics_path: '/foo/metrics'
+    proxy_url: 'any-proxy'
+    oauth2:
+      client_id: 123456
+      client_secret: 123456
+      scopes:
+      - openid
+      token_url: https://foobar/as/token.oauth2 
+    custom_header:            #<- this and the next two lines are new
+        My_new_custom_Header: 'foobar'
+        My_new_custom_Header2: 'foobar'
+    static_configs:
+    - targets: ['any-api']
+```
+
 ## More information
 
   * The source code is periodically indexed: [Prometheus Core](https://pkg.go.dev/github.com/prometheus/prometheus).
