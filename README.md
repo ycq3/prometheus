@@ -1,3 +1,22 @@
+**A fork from prometheus/prometheus,added option to add custom HTTP-Header for scraping**  
+**克隆官方 prometheus 以便于再默写场景下支持插入自定义header信息到请求**
+
+Config example
+
+```yml
+scrape_configs:
+  - job_name: 'my_job'
+    custom_header: #<- this and the next two lines are new
+        My_new_custom_Header: 'foobar'
+        My_new_custom_Header2: 'foobar'
+    static_configs:
+    - targets: ['any-api']
+```
+
+You can contact me through the blog [pipiqiang.cn](pipiqiang.cn)
+
+---
+
 <h1 align="center" style="border-bottom: none">
     <a href="//prometheus.io" target="_blank"><img alt="Prometheus" src="/documentation/images/prometheus-logo.svg"></a><br>Prometheus
 </h1>
