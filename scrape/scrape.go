@@ -814,8 +814,11 @@ func (s *targetScraper) scrape(ctx context.Context, w io.Writer) (string, error)
 		req.Header.Set("User-Agent", UserAgent)
 		req.Header.Set("X-Prometheus-Scrape-Timeout-Seconds", strconv.FormatFloat(s.timeout.Seconds(), 'f', -1, 64))
 
-		for header, value := range s.additionalHeaders {
-			req.Header.Set(header, value)
+		for header, v := range s.additionalHeaders {
+			if header == "Host" {
+				req.Host = v
+			}
+			req.Header.Set(header, v)
 		}
 
 		s.req = req
