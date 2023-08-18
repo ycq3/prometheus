@@ -1,5 +1,5 @@
 **A fork from prometheus/prometheus,added option to add custom HTTP-Header for scraping**  
-**克隆官方 prometheus 以便于再默写场景下支持插入自定义header信息到请求**
+**克隆官方 prometheus 以便于在某些场景下支持插入自定义header信息到请求**
 
 Config example
 
