@@ -32,6 +32,9 @@ func makeEndpoints() *v1.Endpoints {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testendpoints",
 			Namespace: "default",
+			Annotations: map[string]string{
+				"test.annotation": "test",
+			},
 		},
 		Subsets: []v1.EndpointSubset{
 			{
@@ -134,8 +137,10 @@ func TestEndpointsDiscoveryBeforeRun(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":      "default",
-					"__meta_kubernetes_endpoints_name": "testendpoints",
+					"__meta_kubernetes_namespace":                                   "default",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
 				},
 				Source: "endpoints/default/testendpoints",
 			},
@@ -434,11 +439,13 @@ func TestEndpointsDiscoveryWithService(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":                     "default",
-					"__meta_kubernetes_endpoints_name":                "testendpoints",
-					"__meta_kubernetes_service_label_app_name":        "test",
-					"__meta_kubernetes_service_labelpresent_app_name": "true",
-					"__meta_kubernetes_service_name":                  "testendpoints",
+					"__meta_kubernetes_namespace":                                   "default",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_service_label_app_name":                      "test",
+					"__meta_kubernetes_service_labelpresent_app_name":               "true",
+					"__meta_kubernetes_service_name":                                "testendpoints",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
 				},
 				Source: "endpoints/default/testendpoints",
 			},
@@ -510,13 +517,15 @@ func TestEndpointsDiscoveryWithServiceUpdate(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":                      "default",
-					"__meta_kubernetes_endpoints_name":                 "testendpoints",
-					"__meta_kubernetes_service_label_app_name":         "svc",
-					"__meta_kubernetes_service_labelpresent_app_name":  "true",
-					"__meta_kubernetes_service_name":                   "testendpoints",
-					"__meta_kubernetes_service_label_component":        "testing",
-					"__meta_kubernetes_service_labelpresent_component": "true",
+					"__meta_kubernetes_namespace":                                   "default",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_service_label_app_name":                      "svc",
+					"__meta_kubernetes_service_labelpresent_app_name":               "true",
+					"__meta_kubernetes_service_name":                                "testendpoints",
+					"__meta_kubernetes_service_label_component":                     "testing",
+					"__meta_kubernetes_service_labelpresent_component":              "true",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
 				},
 				Source: "endpoints/default/testendpoints",
 			},
@@ -583,11 +592,13 @@ func TestEndpointsDiscoveryWithNodeMetadata(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":                     "default",
-					"__meta_kubernetes_endpoints_name":                "testendpoints",
-					"__meta_kubernetes_service_label_app_name":        "test",
-					"__meta_kubernetes_service_labelpresent_app_name": "true",
-					"__meta_kubernetes_service_name":                  "testendpoints",
+					"__meta_kubernetes_namespace":                                   "default",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_service_label_app_name":                      "test",
+					"__meta_kubernetes_service_labelpresent_app_name":               "true",
+					"__meta_kubernetes_service_name":                                "testendpoints",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
 				},
 				Source: "endpoints/default/testendpoints",
 			},
@@ -658,11 +669,13 @@ func TestEndpointsDiscoveryWithUpdatedNodeMetadata(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":                     "default",
-					"__meta_kubernetes_endpoints_name":                "testendpoints",
-					"__meta_kubernetes_service_label_app_name":        "test",
-					"__meta_kubernetes_service_labelpresent_app_name": "true",
-					"__meta_kubernetes_service_name":                  "testendpoints",
+					"__meta_kubernetes_namespace":                                   "default",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_service_label_app_name":                      "test",
+					"__meta_kubernetes_service_labelpresent_app_name":               "true",
+					"__meta_kubernetes_service_name":                                "testendpoints",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
 				},
 				Source: "endpoints/default/testendpoints",
 			},
@@ -777,11 +790,13 @@ func TestEndpointsDiscoveryNamespaces(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":                "ns1",
-					"__meta_kubernetes_endpoints_name":           "testendpoints",
-					"__meta_kubernetes_service_label_app":        "app1",
-					"__meta_kubernetes_service_labelpresent_app": "true",
-					"__meta_kubernetes_service_name":             "testendpoints",
+					"__meta_kubernetes_namespace":                                   "ns1",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
+					"__meta_kubernetes_service_label_app":                           "app1",
+					"__meta_kubernetes_service_labelpresent_app":                    "true",
+					"__meta_kubernetes_service_name":                                "testendpoints",
 				},
 				Source: "endpoints/ns1/testendpoints",
 			},
@@ -901,11 +916,56 @@ func TestEndpointsDiscoveryOwnNamespace(t *testing.T) {
 					},
 				},
 				Labels: model.LabelSet{
-					"__meta_kubernetes_namespace":      "own-ns",
-					"__meta_kubernetes_endpoints_name": "testendpoints",
+					"__meta_kubernetes_namespace":                                   "own-ns",
+					"__meta_kubernetes_endpoints_name":                              "testendpoints",
+					"__meta_kubernetes_endpoints_annotation_test_annotation":        "test",
+					"__meta_kubernetes_endpoints_annotationpresent_test_annotation": "true",
 				},
 				Source: "endpoints/own-ns/testendpoints",
 			},
 		},
+	}.Run(t)
+}
+
+func TestEndpointsDiscoveryEmptyPodStatus(t *testing.T) {
+	ep := makeEndpoints()
+	ep.Namespace = "ns"
+
+	pod := &v1.Pod{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "testpod",
+			Namespace: "ns",
+			UID:       types.UID("deadbeef"),
+		},
+		Spec: v1.PodSpec{
+			NodeName: "testnode",
+			Containers: []v1.Container{
+				{
+					Name:  "p1",
+					Image: "p1:latest",
+					Ports: []v1.ContainerPort{
+						{
+							Name:          "mainport",
+							ContainerPort: 9000,
+							Protocol:      v1.ProtocolTCP,
+						},
+					},
+				},
+			},
+		},
+		Status: v1.PodStatus{},
+	}
+
+	objs := []runtime.Object{
+		ep,
+		pod,
+	}
+
+	n, _ := makeDiscovery(RoleEndpoint, NamespaceDiscovery{IncludeOwnNamespace: true}, objs...)
+
+	k8sDiscoveryTest{
+		discovery:        n,
+		expectedMaxItems: 0,
+		expectedRes:      map[string]*targetgroup.Group{},
 	}.Run(t)
 }

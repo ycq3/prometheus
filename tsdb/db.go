@@ -22,7 +22,6 @@ import (
 	"math"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,6 +33,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
+	"golang.org/x/exp/slices"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/prometheus/prometheus/config"
@@ -77,8 +77,8 @@ func DefaultOptions() *Options {
 		MaxBlockDuration:           DefaultBlockDuration,
 		NoLockfile:                 false,
 		AllowOverlappingCompaction: true,
-		WALCompression:             false,
 		SamplesPerChunk:            DefaultSamplesPerChunk,
+		WALCompression:             wlog.CompressionNone,
 		StripeSize:                 DefaultStripeSize,
 		HeadChunksWriteBufferSize:  chunks.DefaultWriteBufferSize,
 		IsolationDisabled:          defaultIsolationDisabled,
@@ -123,8 +123,8 @@ type Options struct {
 	// For Prometheus, this will always be true.
 	AllowOverlappingCompaction bool
 
-	// WALCompression will turn on Snappy compression for records on the WAL.
-	WALCompression bool
+	// WALCompression configures the compression type to use on records in the WAL.
+	WALCompression wlog.CompressionType
 
 	// Maximum number of CPUs that can simultaneously processes WAL replay.
 	// If it is <=0, then GOMAXPROCS is used.
@@ -579,8 +579,8 @@ func (db *DBReadOnly) Blocks() ([]BlockReader, error) {
 		return nil, nil
 	}
 
-	sort.Slice(loadable, func(i, j int) bool {
-		return loadable[i].Meta().MinTime < loadable[j].Meta().MinTime
+	slices.SortFunc(loadable, func(a, b *Block) bool {
+		return a.Meta().MinTime < b.Meta().MinTime
 	})
 
 	blockMetas := make([]BlockMeta, 0, len(loadable))
@@ -973,6 +973,8 @@ func (db *DB) run() {
 			case db.compactc <- struct{}{}:
 			default:
 			}
+			// We attempt mmapping of head chunks regularly.
+			db.head.mmapHeadChunks()
 		case <-db.compactc:
 			db.metrics.compactionsTriggered.Inc()
 
@@ -1445,8 +1447,8 @@ func (db *DB) reloadBlocks() (err error) {
 	}
 	db.metrics.blocksBytes.Set(float64(blocksSize))
 
-	sort.Slice(toLoad, func(i, j int) bool {
-		return toLoad[i].Meta().MinTime < toLoad[j].Meta().MinTime
+	slices.SortFunc(toLoad, func(a, b *Block) bool {
+		return a.Meta().MinTime < b.Meta().MinTime
 	})
 
 	// Swap new blocks first for subsequently created readers to be seen.
@@ -1515,8 +1517,8 @@ func deletableBlocks(db *DB, blocks []*Block) map[ulid.ULID]struct{} {
 
 	// Sort the blocks by time - newest to oldest (largest to smallest timestamp).
 	// This ensures that the retentions will remove the oldest  blocks.
-	sort.Slice(blocks, func(i, j int) bool {
-		return blocks[i].Meta().MaxTime > blocks[j].Meta().MaxTime
+	slices.SortFunc(blocks, func(a, b *Block) bool {
+		return a.Meta().MaxTime > b.Meta().MaxTime
 	})
 
 	for _, block := range blocks {
@@ -2090,7 +2092,8 @@ func isBlockDir(fi fs.DirEntry) bool {
 	return err == nil
 }
 
-// isTmpDir returns true if the given file-info contains a block ULID or checkpoint prefix and a tmp extension.
+// isTmpDir returns true if the given file-info contains a block ULID, a checkpoint prefix,
+// or a chunk snapshot prefix and a tmp extension.
 func isTmpDir(fi fs.DirEntry) bool {
 	if !fi.IsDir() {
 		return false
@@ -2100,6 +2103,9 @@ func isTmpDir(fi fs.DirEntry) bool {
 	ext := filepath.Ext(fn)
 	if ext == tmpForDeletionBlockDirSuffix || ext == tmpForCreationBlockDirSuffix || ext == tmpLegacy {
 		if strings.HasPrefix(fn, "checkpoint.") {
+			return true
+		}
+		if strings.HasPrefix(fn, chunkSnapshotPrefix) {
 			return true
 		}
 		if _, err := ulid.ParseStrict(fn[:len(fn)-len(ext)]); err == nil {

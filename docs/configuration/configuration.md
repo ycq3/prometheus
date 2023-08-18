@@ -106,6 +106,10 @@ global:
   # change in the future.
   [ target_limit: <int> | default = 0 ]
 
+  # Limit per scrape config on the number of targets dropped by relabeling
+  # that will be kept in memory. 0 means no limit.
+  [ keep_dropped_targets: <int> | default = 0 ]
+
 # Rule files specifies a list of globs. Rules and alerts are read from
 # all matching files.
 rule_files:
@@ -387,6 +391,7 @@ metric_relabel_configs:
 # This is an experimental feature, this behaviour could
 # change or be removed in the future.
 [ body_size_limit: <size> | default = 0 ]
+
 # Per-scrape limit on number of scraped samples that will be accepted.
 # If more than this number of samples are present after metric relabeling
 # the entire scrape will be treated as failed. 0 means no limit.
@@ -413,6 +418,10 @@ metric_relabel_configs:
 # 0 means no limit. This is an experimental feature, this behaviour could
 # change in the future.
 [ target_limit: <int> | default = 0 ]
+
+# Per-job limit on the number of targets dropped by relabeling
+# that will be kept in memory. 0 means no limit.
+[ keep_dropped_targets: <int> | default = 0 ]
 
 # Limit on total number of positive and negative buckets allowed in a single
 # native histogram. If this is exceeded, the entire scrape will be treated as
@@ -1275,6 +1284,7 @@ The following meta labels are available on targets during [relabeling](#relabel_
 * `__meta_openstack_address_pool`: the pool of the private IP.
 * `__meta_openstack_instance_flavor`: the flavor of the OpenStack instance.
 * `__meta_openstack_instance_id`: the OpenStack instance ID.
+* `__meta_openstack_instance_image`: the ID of the image the OpenStack instance is using.
 * `__meta_openstack_instance_name`: the OpenStack instance name.
 * `__meta_openstack_instance_status`: the status of the OpenStack instance.
 * `__meta_openstack_private_ip`: the private IP of the OpenStack instance.
@@ -2008,6 +2018,8 @@ Available meta labels:
 * `__meta_kubernetes_endpoints_name`: The names of the endpoints object.
 * `__meta_kubernetes_endpoints_label_<labelname>`: Each label from the endpoints object.
 * `__meta_kubernetes_endpoints_labelpresent_<labelname>`: `true` for each label from the endpoints object.
+* `__meta_kubernetes_endpoints_annotation_<annotationname>`: Each annotation from the endpoints object.
+* `__meta_kubernetes_endpoints_annotationpresent_<annotationname>`: `true` for each annotation from the endpoints object.
 * For all targets discovered directly from the endpoints list (those not additionally inferred
   from underlying pods), the following labels are attached:
   * `__meta_kubernetes_endpoint_hostname`: Hostname of the endpoint.
@@ -2030,6 +2042,10 @@ Available meta labels:
 
 * `__meta_kubernetes_namespace`: The namespace of the endpoints object.
 * `__meta_kubernetes_endpointslice_name`: The name of endpointslice object.
+* `__meta_kubernetes_endpointslice_label_<labelname>`: Each label from the endpointslice object.
+* `__meta_kubernetes_endpointslice_labelpresent_<labelname>`: `true` for each label from the endpointslice object.
+* `__meta_kubernetes_endpointslice_annotation_<annotationname>`: Each annotation from the endpointslice object.
+* `__meta_kubernetes_endpointslice_annotationpresent_<annotationname>`: `true` for each annotation from the endpointslice object.
 * For all targets discovered directly from the endpointslice list (those not additionally inferred
   from underlying pods), the following labels are attached:
   * `__meta_kubernetes_endpointslice_address_target_kind`: Kind of the referenced object.

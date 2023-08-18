@@ -49,6 +49,7 @@ func TestQueryConcurrency(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 	queryTracker := NewActiveQueryTracker(dir, maxConcurrency, nil)
+	t.Cleanup(queryTracker.Close)
 
 	opts := EngineOpts{
 		Logger:             nil,
@@ -1198,7 +1199,7 @@ load 10s
 	origMaxSamples := engine.maxSamplesPerQuery
 	for _, c := range cases {
 		t.Run(c.Query, func(t *testing.T) {
-			opts := &QueryOpts{EnablePerStepStats: true}
+			opts := NewPrometheusQueryOpts(true, 0)
 			engine.maxSamplesPerQuery = origMaxSamples
 
 			runQuery := func(expErr error) *stats.Statistics {
@@ -1974,6 +1975,50 @@ func TestSubquerySelector(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTimestampFunction_StepsMoreOftenThanSamples(t *testing.T) {
+	test, err := NewTest(t, `
+load 1m
+  metric 0+1x1000
+`)
+	require.NoError(t, err)
+	defer test.Close()
+
+	err = test.Run()
+	require.NoError(t, err)
+
+	query := "timestamp(metric)"
+	start := time.Unix(0, 0)
+	end := time.Unix(61, 0)
+	interval := time.Second
+
+	// We expect the value to be 0 for t=0s to t=59s (inclusive), then 60 for t=60s and t=61s.
+	expectedPoints := []FPoint{}
+
+	for t := 0; t <= 59; t++ {
+		expectedPoints = append(expectedPoints, FPoint{F: 0, T: int64(t * 1000)})
+	}
+
+	expectedPoints = append(
+		expectedPoints,
+		FPoint{F: 60, T: 60_000},
+		FPoint{F: 60, T: 61_000},
+	)
+
+	expectedResult := Matrix{
+		Series{
+			Floats: expectedPoints,
+			Metric: labels.EmptyLabels(),
+		},
+	}
+
+	qry, err := test.QueryEngine().NewRangeQuery(test.context, test.Queryable(), nil, query, start, end, interval)
+	require.NoError(t, err)
+
+	res := qry.Exec(test.Context())
+	require.NoError(t, res.Err)
+	require.Equal(t, expectedResult, res.Value)
 }
 
 type FakeQueryLogger struct {
@@ -4626,9 +4671,7 @@ metric 0 1 2
 			if c.engineLookback != 0 {
 				eng.lookbackDelta = c.engineLookback
 			}
-			opts := &QueryOpts{
-				LookbackDelta: c.queryLookback,
-			}
+			opts := NewPrometheusQueryOpts(false, c.queryLookback)
 			qry, err := eng.NewInstantQuery(test.context, test.Queryable(), opts, query, c.ts)
 			require.NoError(t, err)
 

@@ -158,6 +158,7 @@ func (m *metrics) instrumentHandlerWithPrefix(prefix string) func(handlerName st
 }
 
 func (m *metrics) instrumentHandler(handlerName string, handler http.HandlerFunc) http.HandlerFunc {
+	m.requestCounter.WithLabelValues(handlerName, "200")
 	return promhttp.InstrumentHandlerCounter(
 		m.requestCounter.MustCurryWith(prometheus.Labels{"handler": handlerName}),
 		promhttp.InstrumentHandlerDuration(
@@ -258,6 +259,7 @@ type Options struct {
 	RemoteReadConcurrencyLimit int
 	RemoteReadBytesInFrame     int
 	EnableRemoteWriteReceiver  bool
+	EnableOTLPWriteReceiver    bool
 	IsAgent                    bool
 	AppName                    string
 
@@ -316,7 +318,7 @@ func New(logger log.Logger, o *Options) *Handler {
 	FactoryRr := func(_ context.Context) api_v1.RulesRetriever { return h.ruleManager }
 
 	var app storage.Appendable
-	if o.EnableRemoteWriteReceiver {
+	if o.EnableRemoteWriteReceiver || o.EnableOTLPWriteReceiver {
 		app = h.storage
 	}
 
@@ -348,6 +350,8 @@ func New(logger log.Logger, o *Options) *Handler {
 		o.Gatherer,
 		o.Registerer,
 		nil,
+		o.EnableRemoteWriteReceiver,
+		o.EnableOTLPWriteReceiver,
 	)
 
 	if o.RoutePrefix != "/" {

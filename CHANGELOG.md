@@ -1,6 +1,28 @@
 # Changelog
 
-## 2.45.0-rc.0 / 2023-06-05
+## 2.46.0 / 2023-07-25
+
+* [FEATURE] Promtool: Add PromQL format and label matcher set/delete commands to promtool. #11411
+* [FEATURE] Promtool: Add push metrics command. #12299
+* [ENHANCEMENT] Promtool: Read from stdin if no filenames are provided in check rules. #12225
+* [ENHANCEMENT] Hetzner SD: Support larger ID's that will be used by Hetzner in September. #12569
+* [ENHANCEMENT] Kubernetes SD: Add more labels for endpointslice and endpoints role. #10914
+* [ENHANCEMENT] Kubernetes SD: Do not add pods to target group if the PodIP status is not set. #11642
+* [ENHANCEMENT] OpenStack SD: Include instance image ID in labels. #12502
+* [ENHANCEMENT] Remote Write receiver: Validate the metric names and labels. #11688
+* [ENHANCEMENT] Web: Initialize `prometheus_http_requests_total` metrics with `code` label set to `200`. #12472
+* [ENHANCEMENT] TSDB: Add Zstandard compression option for wlog. #11666
+* [ENHANCEMENT] TSDB: Support native histograms in snapshot on shutdown. #12258
+* [ENHANCEMENT] Labels: Avoid compiling regexes that are literal. #12434
+* [BUGFIX] Histograms: Fix parsing of float histograms without zero bucket. #12577
+* [BUGFIX] Histograms: Fix scraping native and classic histograms missing some histograms. #12554
+* [BUGFIX] Histograms: Enable ingestion of multiple exemplars per sample. 12557
+* [BUGFIX] File SD: Fix path handling in File-SD watcher to allow directory monitoring on Windows. #12488
+* [BUGFIX] Linode SD: Cast `InstanceSpec` values to `int64` to avoid overflows on 386 architecture. #12568
+* [BUGFIX] PromQL Engine: Include query parsing in active-query tracking. #12418
+* [BUGFIX] TSDB: Handle TOC parsing failures. #10623
+
+## 2.45.0 / 2023-06-23
 
 This release is a LTS (Long-Term Support) release of Prometheus and will
 receive security, documentation and bugfix patches for at least 12 months.
@@ -15,7 +37,6 @@ Please read more about our LTS release cycle at
 * [FEATURE] Promtool: When providing the block id, only one block will be loaded and analyzed. #12031
 * [FEATURE] Remote-write: New Azure ad configuration to support remote writing directly to Azure Monitor workspace. #11944
 * [FEATURE] TSDB: Samples per chunk are now configurable with flag `storage.tsdb.samples-per-chunk`. By default set to its former value 120. #12055
-* [ENHANCEMENT] API: Improving Performance on the API Gzip Handler. #12363
 * [ENHANCEMENT] Native histograms: bucket size can now be limited to avoid scrape fails. #12254
 * [ENHANCEMENT] TSDB: Dropped series are now deleted from the WAL sooner. #12297
 * [BUGFIX] Native histograms: ChunkSeries iterator now checks if a new sample can be appended to the open chunk. #12185
@@ -63,7 +84,7 @@ improvements for testing. #10991
 * [FEATURE] Promtool: Add HTTP client configuration to query commands. #11487
 * [FEATURE] Scrape: Add `scrape_config_files` to include scrape configs from different files. #12019
 * [FEATURE] HTTP client: Add `no_proxy` to exclude URLs from proxied requests. #12098
-* [FEATURE] HTTP client: Add `proxy_from_enviroment` to read proxies from env variables. #12098
+* [FEATURE] HTTP client: Add `proxy_from_environment` to read proxies from env variables. #12098
 * [ENHANCEMENT] API: Add support for setting lookback delta per query via the API. #12088
 * [ENHANCEMENT] API: Change HTTP status code from 503/422 to 499 if a request is canceled. #11897
 * [ENHANCEMENT] Scrape: Allow exemplars for all metric types. #11984
